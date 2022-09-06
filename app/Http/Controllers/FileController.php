@@ -23,9 +23,9 @@ class FileController extends Controller
         if($isAuth['return']){
             $user = $isAuth['resp'];
             $userFiles = Files::where('user_id', $user->id)->orderBy('created_at', 'DESC')->paginate(10);
-            return response()->json(['user_files'=> $userFiles]);
+            return response()->json(['user_files'=> $userFiles], 200);
         }else{
-            return $isAuth['resp'];
+            return response()->json($isAuth['resp'],422);
         }
     }
 
@@ -38,45 +38,47 @@ class FileController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(),[
-            'file' => 'required|mimes:pdf|max:2048'
-        ]);
-        if($validator->fails()){
-            return response()->json($validator->errors()->toJson(), 422);
-        }
+        $isAuth = $this->checkUserAuthentication();
+        if($isAuth['return']) {
+            $validator = Validator::make($request->all(), [
+                'file' => 'required|mimes:pdf|max:2048'
+            ]);
+            if ($validator->fails()) {
+                return response()->json($validator->errors()->toJson(), 422);
+            }
 
-        //need to check if user is authenticated
+            $file = $request->file('file');
+            $fileDisplayName = $file->getClientOriginalName();
+            $fileExtension = $file->getClientOriginalExtension();
+            $fileSize = $file->getSize();
+            $hashName = uniqid(rand(), false) . '.' . $fileExtension;
+            $userId = Auth::user()->id;
 
-        $file = $request->file('file');
-        $fileDisplayName = $file->getClientOriginalName();
-        $fileExtension = $file->getClientOriginalExtension();
-        $fileSize = $file->getSize();
-        $hashName = uniqid(rand(), false).'.'.$fileExtension;
-        $userId = Auth::user()->id;
-
-        $filePath = public_path(Config::get('const.files.pdf'));
-        if($file->move($filePath, $hashName.'.'.$fileExtension)){
-            if (File::exists($filePath.'/'.$hashName.'.'.$fileExtension)) {
-                //dd($fileDisplayName);
-                $data = [
-                         'display_name'   => explode('.pdf',$fileDisplayName)[0],
-                         'extension'      => $fileExtension,
-                         'size'           => $fileSize,
-                         'hash_name'      => $hashName,
-                         'user_id'        => $userId
-                        ];
-                if(Files::create($data)){
+            $filePath = public_path(Config::get('const.files.pdf'));
+            if ($file->move($filePath, $hashName . '.' . $fileExtension)) {
+                if (File::exists($filePath . '/' . $hashName . '.' . $fileExtension)) {
+                    $data = [
+                        'display_name' => explode('.pdf', $fileDisplayName)[0],
+                        'extension' => $fileExtension,
+                        'size' => $fileSize,
+                        'hash_name' => $hashName,
+                        'user_id' => $userId
+                    ];
+                    if (Files::create($data)) {
+                        return response()->json([
+                            'message' => 'File uploaded with success.',
+                        ], 200);
+                    }
+                } else {
                     return response()->json([
-                        'message' => 'File uploaded with success.',
-                    ],200);
+                        'message' => 'Something went wrong, file not uploaded.',
+                    ], 422);
                 }
-            }else{
-                return response()->json([
-                    'message' => 'Something went wrong, file not uploaded.',
-                ],200);
+            } else {
+                return response()->json('message', 'Upload fail.');
             }
         }else{
-            return response()->json('message', 'Upload fail.');
+            return response()->json($isAuth['resp'],422);
         }
     }
 

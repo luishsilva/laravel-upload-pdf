@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
-use Auth;
 use Validator;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -63,5 +63,9 @@ class AuthController extends Controller
             'expires_in'    => auth('api')->factory()->getTTL() * 60,
             'name'          => auth('api')->user()->name,
         ]);
+    }
+
+    public function logout(){
+        Auth::check();
     }
 }
