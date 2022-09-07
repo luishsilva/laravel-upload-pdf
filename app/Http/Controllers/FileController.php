@@ -55,8 +55,8 @@ class FileController extends Controller
             $userId = Auth::user()->id;
 
             $filePath = public_path(Config::get('const.files.pdf'));
-            if ($file->move($filePath, $hashName . '.' . $fileExtension)) {
-                if (File::exists($filePath . '/' . $hashName . '.' . $fileExtension)) {
+            if ($file->move($filePath, $hashName)) {
+                if (File::exists($filePath . '/' . $hashName)) {
                     $data = [
                         'display_name' => explode('.pdf', $fileDisplayName)[0],
                         'extension' => $fileExtension,

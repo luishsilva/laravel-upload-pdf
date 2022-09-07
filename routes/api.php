@@ -16,17 +16,13 @@ use App\Http\Controllers\FileController;
 |
 */
 
-/*Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});*/
 
 Route::group([
     'middleware' => ['api'],
     'prefix'     => 'auth'
 ], function () {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
-    //Route::get('/logout', [AuthController::class, 'logout']);
+    Route::post('/register', [AuthController::class, 'register'])->name('user.register');
+    Route::post('/login', [AuthController::class, 'login'])->name('user.login');
 });
 
 
@@ -34,6 +30,6 @@ Route::group([
     'middleware' => ['api'],
     'prefix'     => 'upload'
 ], function () {
-    Route::post('store', [FileController::class, 'store']);
-    Route::get('list', [FileController::class, 'index']);
+    Route::post('store', [FileController::class, 'store'])->name('upload.store');
+    Route::get('list', [FileController::class, 'index'])->name('upload.list');
 });

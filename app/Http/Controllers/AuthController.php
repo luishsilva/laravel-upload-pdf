@@ -31,11 +31,11 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'We are happy to register your account.',
                 'user' => $user
-            ], 200);
+            ], 201);
         }else{
             return response()->json([
                 'message' => 'Sorry, something went wrong, it was not possible register your account.',
-            ], 200);
+            ], 201);
         }
     }
 
@@ -45,11 +45,11 @@ class AuthController extends Controller
             'password' => 'required|string|min:6',
         ]);
 
+
         if($validator->fails()){
             return response()->json($validator->errors(), 422);
         }
-
-        if(! $token =auth('api')->attempt($validator->validate())){
+        if(! $token = auth('api')->attempt($validator->validate())){
             return response()->json(['error'=>'Invalid credentials.'], 422);
         }
 
@@ -63,9 +63,5 @@ class AuthController extends Controller
             'expires_in'    => auth('api')->factory()->getTTL() * 60,
             'name'          => auth('api')->user()->name,
         ]);
-    }
-
-    public function logout(){
-        Auth::check();
     }
 }
